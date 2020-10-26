@@ -13,9 +13,72 @@ Abordam-se aqui três níveis ou métodos de gestão de ciclo de vida, dois com 
 
 Apenas os dois últimos métodos permitem implementar formas de "undo":  recuperar o estado anterior de um elemento ou mesmo o seu apagamento indesejado.
 
+Os três métodos recorrem a ***trigger*** de base de dados como forma de reagir, de forma automática e totalmente robusta, às alterações efetuadas, sendo altamente improvável existir uma falha de software ou de hardware que impeça o registo garantido de todas as alterações.
+
+A única forma de quebrar esta garantia será a inativação ou a remoção do trigger por um administrador da b.d..
+
 ### Auditoria básica
 
-Para
+Este método serve apenas para manter um registo simples de:
+
+- data/hora de criação ou alteração de um registo;
+- utilizador responsável pela última operação de criação ou alteração.
+
+Para isso usamos três campos ou colunas na tabela a auditar. Podemos defini-los, por exemplo, como:
+
+```SQL
+ALTER TABLE schemax.tabela_a
+    ADD COLUMN utilizador character varying(64),
+    ADD COLUMN data_criacao timestamp without time zone,
+    ADD COLUMN data_atualizacao timestamp without time zone;
+```
+
+Apresenta-se a seguir a forma mais fácil de entender este método, com a criação de dois ***trigger*** um dirigido a criação de registos e outro à alteração de registos.
+
+**Trigger usado na criação de elementos**
+
+```SQL
+CREATE FUNCTION schemax.tr_ins()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+	NEW.utilizador := current_user;
+	NEW.data_criacao := now();
+	RETURN NEW;
+END;
+$BODY$;
+
+CREATE TRIGGER tr_criacao
+    BEFORE INSERT
+    ON schemax.tabela_a
+    FOR EACH ROW
+    EXECUTE PROCEDURE schemax.tr_ins();
+```
+
+**Trigger usado na alteração de elementos**
+
+```SQL
+CREATE FUNCTION schemax.tr_ins()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+	NEW.utilizador := current_user;
+	NEW.data_criacao := now();
+	RETURN NEW;
+END;
+$BODY$;
+
+CREATE TRIGGER tr_criacao
+    BEFORE INSERT
+    ON schemax.tabela_a
+    FOR EACH ROW
+    EXECUTE PROCEDURE schemax.tr_ins();
+```
+
+Cada trigger invoca uma "trigger function" própria. A defini ...
+
 
 ### Fora de âmbito - Versionamento
 
