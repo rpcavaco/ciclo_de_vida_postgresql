@@ -96,4 +96,4 @@ Esta forma de gestão de ciclo de vida de objetos é considerada demasiadamente 
 
 | Exemplo  | Ficheiro |
 | ---------------- | :------------------ |
-| Auditoria básica | tracking_basico.sql |
+| Auditoria básica | https://github.com/rpcavaco/ciclo_de_vida_postgresql/blob/master/tracking_basico.sql |
