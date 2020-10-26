@@ -51,3 +51,30 @@ CREATE TRIGGER tr_atualizacao
     ON schemax.tabela_a
     FOR EACH ROW
     EXECUTE PROCEDURE schemax.tr_upd();
+
+
+
+-------------------------------------------------
+-- Registo de alteração e criação de objeto
+-------------------------------------------------
+
+CREATE FUNCTION schemax.tr_insupd()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+	NEW.utilizador := current_user;
+	IF (TG_OP = 'UPDATE') THEN
+		NEW.data_atualizacao := now();
+	ELSE
+		NEW.data_criacao := now();
+	END IF;
+	RETURN NEW;
+END;
+$BODY$;
+
+CREATE TRIGGER tr_criacao_atualizacao
+    BEFORE INSERT OR UPDATE
+    ON schemax.tabela_a
+    FOR EACH ROW
+    EXECUTE PROCEDURE schemax.tr_insupd();

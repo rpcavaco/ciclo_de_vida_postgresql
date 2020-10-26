@@ -59,26 +59,61 @@ CREATE TRIGGER tr_criacao
 **Trigger usado na alteração de elementos**
 
 ```SQL
-CREATE FUNCTION schemax.tr_ins()
+CREATE FUNCTION schemax.tr_upd()
     RETURNS trigger
     LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
 	NEW.utilizador := current_user;
-	NEW.data_criacao := now();
+	NEW.data_atualizacao := now();
 	RETURN NEW;
 END;
 $BODY$;
 
-CREATE TRIGGER tr_criacao
-    BEFORE INSERT
+CREATE TRIGGER tr_atualizacao
+    BEFORE UPDATE
     ON schemax.tabela_a
     FOR EACH ROW
-    EXECUTE PROCEDURE schemax.tr_ins();
+    EXECUTE PROCEDURE schemax.tr_upd();
 ```
 
-Cada trigger invoca uma "trigger function" própria. A defini ...
+Cada trigger invoca uma "trigger function" própria.
 
+É possível juntar ambos os trigger distingindo o contexto de criação / alteração recorrendo à varável especial TG_OP.
+
+Contudo a separação em *triggers* diferentes permite a limitação do disparo do *trigger*, por exemplo, apenas na atualização de campos específicos. Para limitar o trigger de atualização à atualização de um campo chamado "geom", faríamos ...
+
+```SQL
+....
+CREATE TRIGGER tr_atualizacao
+    BEFORE UPDATE OF geom
+.....
+```
+
+**Trigger usado na alteração e criação de elementos**
+
+```SQL
+CREATE FUNCTION schemax.tr_insupd()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+  NEW.utilizador := current_user;
+  IF (TG_OP = 'UPDATE') THEN
+  	NEW.data_atualizacao := now();
+  ELSE
+  	NEW.data_criacao := now();
+  END IF;
+  RETURN NEW;
+END;
+$BODY$;
+
+CREATE TRIGGER tr_criacao_atualizacao
+    BEFORE INSERT OR UPDATE
+    ON schemax.tabela_a
+    FOR EACH ROW
+    EXECUTE PROCEDURE schemax.tr_insupd();
+```
 
 ### Fora de âmbito - Versionamento
 
