@@ -96,4 +96,4 @@ Esta forma de gestão de ciclo de vida de objetos é considerada demasiadamente 
 
 | Exemplo  | Ficheiro |
 | ---------------- | :------------------ |
-| Auditoria básica | tracking_basico.sql |
+| Auditoria básica | [ tracking_basico.sql](tracking_basico.sql) |
